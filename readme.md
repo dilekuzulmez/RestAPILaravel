@@ -1,51 +1,119 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
+### REST API Laravel 5.4 with Token Authentication
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+##### ADIM 1:
+ <pre><code>$ composer create-project laravel/laravel RestAPILaravel </code></pre>
+ <pre><code>$ cd RestAPILaravel</code></pre>
 
-## About Laravel
+##### ADIM 1.1:
+<pre><code>$ mysql -u [username] -p
+mysql> create database api;
+mysql> exit </code></pre>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
+##### ADIM 1.2:
+Projemizin .env dosyasına giderek veritabanı bilgilerimizi dolduruyoruz.
+ <pre><code>DB_CONNECTION=mysql
+DB_HOST=replace with your IP
+DB_PORT=3306
+DB_DATABASE=api
+DB_USERNAME=[username]
+DB_PASSWORD=[password] </code></pre>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+##### ADIM 2:
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications. A superb combination of simplicity, elegance, and innovation give you tools you need to build any application with which you are tasked.
+Users migration tablomuza giderek aşağıdaki şekilde dosyayı güncelliyoruz. [2014_10_12_000000_create_users_table.php]
+ <pre><code>public function up()
+{
+  Schema::create('users', function (Blueprint $table) {
+  $table->increments('id');
+  $table->string('name');
+  $table->string('email')->unique();
+  $table->string('password');
+  $table->string('api_token', 60)->unique();
+  $table->rememberToken();
+  $table->timestamps();
+  });
+}</code></pre>
+User modelimize giderek aşağıdaki şekilde güncelliyoruz.[User.php]
+ <pre><code>protected $fillable = [
+        'name', 'email', 'password', **'api_token'**,
+];</code></pre>
 
-## Learning Laravel
+##### ADIM 2.2:
+Şimdi Post modelimizi ve migrations'ımızı oluşturmak için aşağıdaki komutu çalıştırıyoruz.
+<pre><code>$  php artisan make:model Post -m </code></pre>
 
-Laravel has the most extensive and thorough documentation and video tutorial library of any modern web application framework. The [Laravel documentation](https://laravel.com/docs) is thorough, complete, and makes it a breeze to get started learning the framework.
+Post modelimize giderek aşağıdaki şekilde Foreign key olarak User modeli ile olan ilişkisini yazıyoruz.[Post.php]
 
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 900 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
+<pre><code>public function user() {
+   return $this->belongsTo(User::class);
+} </code></pre>
 
-## Laravel Sponsors
+User modelimize giderek aşağıdaki ilişkiyi yazıyoruz.
+<pre><code>public function posts() {
+   return $this->hasMany(Post::class);
+} </code></pre>
 
-We would like to extend our thanks to the following sponsors for helping fund on-going Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](http://patreon.com/taylorotwell):
+Posts migration tablomuza giderek aşağıdaki şekilde dosyayı güncelliyoruz.[2017_08_23_194621_create_posts_table.php]
+<pre><code>public function up()
+{
+  Schema::create('posts', function (Blueprint $table) {
+  $table->increments('id');
+  $table->string('title');
+  $table->text('body');
+  $table->integer('user_id');
+  $table->timestamps();
+  });
+}</code></pre>
+Post modelimize giderek aşağıdaki şekilde güncelliyoruz.[Post.php]
+<pre><code>protected $fillable = [
+  'title', 'body', 'user_id',
+];</code></pre>
+Aşağıdaki komut ile veritabanını güncelliyoruz.
+<pre><code>$ php artisan migrate:refresh </code></pre>
 
-- **[Vehikl](http://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Styde](https://styde.net)**
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
+##### ADIM 3:
 
-## Contributing
+Şimdi bir APIController oluşturacağız.
+<pre><code>$ php artisan make:controller APIController --resource </code></pre>
+APIController'ımızı aşağıdaki şekilde güncelleyelim.[APIController.php]
+<pre><code>public function index()
+{
+  $posts = Post::all();
+  return response()->json($posts);
+}</code></pre>
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
+!!Dosyamızın en üst kısmına bunu yazmayı unutmuyoruz:
+<pre><code>use App\Post; </code></pre>
 
-## Security Vulnerabilities
+##### ADIM 4:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+<pre><code>$ php artisan tinker 'komutunu çalıştırıyoruz.</code></pre>
 
-## License
+User eklemek için:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+<img src="user.png">
+
+Post eklemek için:
+
+<img src="post.png">
+
+##### ADIM 5:
+Router'ı düzenleceğiz şimdi. [api.php]
+<pre><code>Route::group(['middleware' => 'auth:api'], function () {
+    Route::resource('post', 'APIController');
+}); </code></pre>
+
+##### ADIM 6:
+Authentication'ı etkinleştiriyoruz.
+<pre><code>$ php artisan make:auth </code></pre>
+
+##### ADIM 7:
+<pre><code>$ php artisan serve</code></pre>
+
+Şimdi browserımızı açıp URL'a api_token'ımızı yazacağız.
+
+<pre><code>localhost:8000/api/post?api_token=uOunEWjLCl0qhhMYR6lI1j8qY3aYfbc3pQa48Bq1KOrNaH2NXjw12VHtdg3d </code></pre>
+
+<img src="api_token.png">
+
+Ve mutlu son :tada: :tada: :tada:
