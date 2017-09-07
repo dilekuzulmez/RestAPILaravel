@@ -38,7 +38,7 @@ User modelimize giderek aşağıdaki şekilde güncelliyoruz.[User.php]
         'name', 'email', 'password', **'api_token'**,
 ];</code></pre>
 
-##### ADIM 2.2:
+##### ADIM 2.1:
 Şimdi Post modelimizi ve migrations'ımızı oluşturmak için aşağıdaki komutu çalıştırıyoruz.
 <pre><code>$  php artisan make:model Post -m </code></pre>
 
