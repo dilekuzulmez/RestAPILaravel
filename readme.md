@@ -1,5 +1,12 @@
 ### REST API Laravel 5.4 with Token Authentication
 
+##### Projeyi direkt kullanabilmek için:
+<pre><code>$ git clone https://github.com/dilekuzulmez/RestAPILaravel.git </pre></code>
+<pre><code>$ cd Laravel-Realtime-Chat</pre></code>
+<pre><code>$ composer install </pre></code>
+<pre><code>$ php artisan key:generate</pre></code>
+<pre><code>$ php artisan serve </pre></code>
+
 ##### ADIM 1:
  <pre><code>$ composer create-project laravel/laravel RestAPILaravel </code></pre>
  <pre><code>$ cd RestAPILaravel</code></pre>
